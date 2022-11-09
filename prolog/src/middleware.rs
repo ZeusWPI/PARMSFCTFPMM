@@ -58,9 +58,9 @@ where
 
 		Box::pin(async move {
 			let client = Client::new();
-			let jopser_url = env::var("PARMESAN_URL").expect("could not get PARMESAN_URL");
+			let parmesan_url = env::var("PARMESAN_URL").expect("could not get PARMESAN_URL");
 			let parmesan_res =
-				client.get(jopser_url).send().await.expect("could not query parmesan");
+				client.get(parmesan_url).send().await.expect("could not query parmesan");
 			let json = parmesan_res
 				.json::<Map<String, serde_json::Value>>()
 				.await

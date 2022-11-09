@@ -1,0 +1,7 @@
+__pycache__/
+.dockerignore
+.gitignore
+Dockerfile
+logins.csv
+Makefile
+used.json
