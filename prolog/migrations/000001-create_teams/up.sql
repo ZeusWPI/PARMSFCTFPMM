@@ -1,0 +1,4 @@
+CREATE TABLE team (
+	name TEXT PRIMARY KEY,
+	points INTEGER NOT NULL DEFAULT 0,
+);

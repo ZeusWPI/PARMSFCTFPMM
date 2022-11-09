@@ -1,1 +1,1 @@
-DROP TABLE manual_flags;
+DROP TABLE manual_flag;

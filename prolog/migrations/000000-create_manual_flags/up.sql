@@ -1,4 +1,4 @@
-CREATE TABLE manual_flags (
+CREATE TABLE manual_flag (
 	name TEXT PRIMARY KEY,
 	flag TEXT UNIQUE NOT NULL
 );
