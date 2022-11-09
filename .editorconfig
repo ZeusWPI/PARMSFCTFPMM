@@ -12,3 +12,6 @@ indent_style = space
 
 [*.pl]
 indent_style = space
+
+[*.py]
+indent_style = space
