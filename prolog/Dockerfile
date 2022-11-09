@@ -26,7 +26,7 @@ FROM debian:stable-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update \
-	&& apt install -y libsqlite3-0 \
+	&& apt install -y libsqlite3-0 sqlite3 \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /prolog

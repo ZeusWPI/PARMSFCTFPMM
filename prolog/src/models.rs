@@ -8,6 +8,7 @@ mod schema {
 	table! {
 		manual_flag (name) {
 			name -> Text,
+			description -> Text,
 			flag -> Text,
 		}
 	}
@@ -27,8 +28,9 @@ use crate::DbConn;
 #[diesel(primary_key(name))]
 #[diesel(table_name = manual_flag)]
 pub(crate) struct ManualFlag {
-	name: String,
-	flag: String,
+	name:        String,
+	description: String,
+	flag:        String,
 }
 
 impl ManualFlag {
@@ -51,7 +53,7 @@ impl ManualFlag {
 	}
 }
 
-#[derive(Clone, Identifiable, Queryable)]
+#[derive(Clone, Identifiable, Queryable, AsChangeset)]
 #[diesel(primary_key(name))]
 #[diesel(table_name = team)]
 pub(crate) struct Team {
@@ -76,6 +78,27 @@ impl Team {
 			use self::team::dsl::*;
 
 			insert_or_ignore_into(team).values(team_names).execute(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
+	}
+
+	/// Increment the score for a team by a given amount
+	pub(crate) async fn incr_team_score(team_name: String, incr: i32, mut conn: DbConn) {
+		web::block(move || {
+			use self::team::dsl::*;
+
+			let prev: i32 = team
+				.filter(name.eq(team_name.clone()))
+				.select(points)
+				.first(&mut conn)
+				.expect("could not get points");
+
+			diesel::update(team)
+				.filter(name.eq(team_name))
+				.set(points.eq(prev + incr))
+				.execute(&mut conn)
 		})
 		.await
 		.expect("blocking call failed")

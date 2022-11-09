@@ -21,6 +21,7 @@ mod middleware;
 mod models;
 
 use models::{ManualFlag, Team};
+use serde::Deserialize;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
@@ -47,15 +48,28 @@ async fn get_scores(db_pool: web::Data<DbPool>) -> HttpResponse {
 	HttpResponse::Ok().json(scores)
 }
 
-#[post("/flag/{name}/{flag}")]
+#[derive(Deserialize)]
+struct TeamNameQuery {
+	team_name: String,
+}
+
+#[post("/verify/{name}/{flag}")]
 async fn verify_flag(
 	info: web::Path<(String, String)>,
+	query: web::Query<TeamNameQuery>,
 	db_pool: web::Data<DbPool>,
 ) -> HttpResponse {
 	let db_conn = db_pool.get().expect("could not get database connection");
 	let (name, flag) = info.into_inner();
 
 	let valid = ManualFlag::verify_flag(name, flag, db_conn).await;
+
+	let team_name = query.into_inner().team_name;
+
+	if valid {
+		let db_conn = db_pool.get().expect("could not get database connection");
+		Team::incr_team_score(team_name, 200, db_conn).await;
+	}
 
 	HttpResponse::Ok().json(json!({ "valid": valid }))
 }
