@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+    manual_flags:
+        image: manual_flags:latest
+        container_name: manual_flags
+        restart: unless-stopped
+        logging:
+            options:
+                max-size: "4096m"
+        environment:
+          - SQLITE_PATH=/tmp/manual_flags/db.sqlite
+        ports:
+          - "4000:80"
+        volumes:
+          - manual_flags_db:/tmp/manual_flags/
+
+volumes:
+    manual_flags_db:
+        external: true
