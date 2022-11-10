@@ -1,6 +1,5 @@
 from flask import Flask, request, url_for
 import csv
-import re
 import json
 
 NAMES_FILE = "data/logins.csv"
