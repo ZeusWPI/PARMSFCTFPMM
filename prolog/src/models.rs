@@ -1,6 +1,6 @@
 use actix_web::web;
-use diesel::insert_or_ignore_into;
 use diesel::prelude::*;
+use diesel::{insert_into, insert_or_ignore_into};
 use serde::Serialize;
 use serde_json::Map;
 
@@ -19,9 +19,21 @@ mod schema {
 			points -> Integer,
 		}
 	}
+
+	table! {
+		solved_by (flag_name, team_name) {
+			flag_name -> Text,
+			team_name -> Text,
+		}
+	}
+
+	joinable!(solved_by -> manual_flag (flag_name));
+	joinable!(solved_by -> team (team_name));
+
+	allow_tables_to_appear_in_same_query!(manual_flag, team, solved_by,);
 }
 
-use self::schema::{manual_flag, team};
+use self::schema::{manual_flag, solved_by, team};
 use crate::DbConn;
 
 #[derive(Clone, Identifiable, Queryable, Serialize)]
@@ -31,6 +43,24 @@ pub(crate) struct ManualFlag {
 	name:        String,
 	description: String,
 	flag:        String,
+}
+
+#[derive(Clone, Identifiable, Queryable, AsChangeset)]
+#[diesel(primary_key(name))]
+#[diesel(table_name = team)]
+pub(crate) struct Team {
+	name:   String,
+	points: i32,
+}
+
+#[derive(Clone, Identifiable, Queryable, Associations)]
+#[diesel(primary_key(flag_name, team_name))]
+#[diesel(table_name = solved_by)]
+#[diesel(belongs_to(ManualFlag, foreign_key = flag_name))]
+#[diesel(belongs_to(Team, foreign_key = team_name))]
+pub(crate) struct SolvedBy {
+	flag_name: String,
+	team_name: String,
 }
 
 impl ManualFlag {
@@ -51,14 +81,6 @@ impl ManualFlag {
 
 		requested_flag.flag == supplied_flag
 	}
-}
-
-#[derive(Clone, Identifiable, Queryable, AsChangeset)]
-#[diesel(primary_key(name))]
-#[diesel(table_name = team)]
-pub(crate) struct Team {
-	name:   String,
-	points: i32,
 }
 
 #[derive(Insertable)]
@@ -122,5 +144,45 @@ impl Team {
 		}
 
 		serde_json::Value::Object(flat_map)
+	}
+}
+
+impl SolvedBy {
+	/// Check if a flag has been solved by a team
+	pub(crate) async fn has_been_solved(
+		flag_name_: String,
+		team_name_: String,
+		mut conn: DbConn,
+	) -> bool {
+		let solved = web::block(move || {
+			use diesel::dsl::{exists, select};
+
+			use self::solved_by::dsl::*;
+
+			select(exists(
+				solved_by.filter(flag_name.eq(flag_name_)).filter(team_name.eq(team_name_)),
+			))
+			.get_result(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
+
+		println!("solved: {}", solved);
+
+		solved
+	}
+
+	pub(crate) async fn set_solved(flag_name_: String, team_name_: String, mut conn: DbConn) {
+		web::block(move || {
+			use self::solved_by::dsl::*;
+
+			insert_into(solved_by)
+				.values((flag_name.eq(flag_name_), team_name.eq(team_name_)))
+				.execute(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
 	}
 }

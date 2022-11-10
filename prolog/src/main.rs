@@ -20,7 +20,7 @@ use r2d2::{Pool, PooledConnection};
 mod middleware;
 mod models;
 
-use models::{ManualFlag, Team};
+use models::{ManualFlag, SolvedBy, Team};
 use serde::Deserialize;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -59,19 +59,30 @@ async fn verify_flag(
 	query: web::Query<TeamNameQuery>,
 	db_pool: web::Data<DbPool>,
 ) -> HttpResponse {
-	let db_conn = db_pool.get().expect("could not get database connection");
-	let (name, flag) = info.into_inner();
-
-	let valid = ManualFlag::verify_flag(name, flag, db_conn).await;
-
+	let (flag_name, flag) = info.into_inner();
 	let team_name = query.into_inner().team_name;
 
-	if valid {
-		let db_conn = db_pool.get().expect("could not get database connection");
-		Team::incr_team_score(team_name, 200, db_conn).await;
+	let db_conn = db_pool.get().expect("could not get database connection");
+	let solved = SolvedBy::has_been_solved(flag_name.clone(), team_name.clone(), db_conn).await;
+
+	if solved {
+		return HttpResponse::Forbidden().finish();
 	}
 
-	HttpResponse::Ok().json(json!({ "valid": valid }))
+	let db_conn = db_pool.get().expect("could not get database connection");
+	let valid = ManualFlag::verify_flag(flag_name.clone(), flag, db_conn).await;
+
+	if !(valid) {
+		return HttpResponse::Ok().json(json!({ "correct": false }));
+	}
+
+	let db_conn = db_pool.get().expect("could not get database connection");
+	Team::incr_team_score(team_name.clone(), 200, db_conn).await;
+
+	let db_conn = db_pool.get().expect("could not get database connection");
+	SolvedBy::set_solved(flag_name, team_name, db_conn).await;
+
+	HttpResponse::Ok().json(json!({ "correct": true }))
 }
 
 #[actix_web::main]
