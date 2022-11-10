@@ -19,4 +19,18 @@ body {
 	position: absolute;
 	letter-spacing: 0.5px;
 	font-family: sans-serif;
+
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: center;
+
+	background-color: #202020;
+	color: #f9f5d7;
+}
+
+h1, h2, h3,
+h4, h5, h6 {
+	font-weight: 600;
+	text-align: center;
 }

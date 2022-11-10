@@ -33,8 +33,12 @@ fn run_migrations<DB: Backend>(conn: &mut impl MigrationHarness<DB>) {
 }
 
 #[get("/")]
-async fn show_index(hb: web::Data<Handlebars<'_>>) -> HttpResponse {
-	let body = hb.render("index", &json!({ "content": "test" })).expect("could not render index");
+async fn show_index(hb: web::Data<Handlebars<'_>>, db_pool: web::Data<DbPool>) -> HttpResponse {
+	let db_conn = db_pool.get().expect("could not get database connection");
+	let challenges = ManualFlag::get_all(db_conn).await;
+
+	let body =
+		hb.render("index", &json!({ "challenges": challenges })).expect("could not render index");
 
 	HttpResponse::Ok().body(body)
 }

@@ -6,10 +6,43 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 		<link rel="stylesheet" href="/static/index.css">
+		<script src="/static/index.js" defer></script>
 
 		<title>Zeus CTF Flags</title>
 	</head>
 	<body>
-		{{content}}
+		<div class="wrapper">
+			<div class="team-name-header">
+				<h2>Team Name:</h2>
+				<input
+					type="text"
+					name="team-name"
+					id="team-name-input"
+					placeholder="team name"
+				>
+			</div>
+			<ul>
+				{{#each challenges}}
+					{{#with this as | challenge |}}
+						<li>
+							<div class="challenge-header">
+								<h3>{{challenge.name}}</h3>
+								<input
+									type="text"
+									name="flag"
+									id="flag"
+									class="flag-input"
+									placeholder="flag"
+								>
+							</div>
+							<p>
+								{{challenge.description}}
+							</p>
+						</li>
+					{{/with}}
+				{{/each}}
+			</ul>
+			<input type="button" value="SUBMIT" id="submit-btn">
+		</div>
 	</body>
 </html>

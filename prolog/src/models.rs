@@ -81,6 +81,20 @@ impl ManualFlag {
 
 		requested_flag.flag == supplied_flag
 	}
+
+	/// Get a list of all flags
+	pub(crate) async fn get_all(mut conn: DbConn) -> Vec<Self> {
+		let challenges = web::block(move || {
+			use self::manual_flag::dsl::*;
+
+			manual_flag.load(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
+
+		challenges
+	}
 }
 
 #[derive(Insertable)]
@@ -167,8 +181,6 @@ impl SolvedBy {
 		.await
 		.expect("blocking call failed")
 		.expect("db query failed");
-
-		println!("solved: {}", solved);
 
 		solved
 	}
