@@ -8,8 +8,9 @@ extern crate serde_json;
 use std::env;
 
 use actix_files::Files;
-use actix_web::middleware::{Compress, NormalizePath};
+use actix_web::middleware::{Compress, NormalizePath, Logger};
 use actix_web::{get, post, web, App, HttpResponse, HttpServer};
+use chrono::{SecondsFormat, Utc};
 use diesel::backend::Backend;
 use diesel::r2d2::ConnectionManager;
 use diesel::SqliteConnection;
@@ -120,6 +121,24 @@ async fn verify_flag(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+	fern::Dispatch::new()
+		.format(|out, msg, record| {
+			out.finish(format_args!(
+				"[{}][{}][{}] {}",
+				Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true),
+				record.target(),
+				record.level(),
+				msg
+			))
+		})
+		.chain(std::io::stderr())
+		.level(log::LevelFilter::Info)
+		.apply()
+		.unwrap_or_else(|err| {
+			eprintln!("logger initialisation failed: {:?}", err);
+			std::process::exit(1);
+		});
+
 	let sqlite_path = env::var("SQLITE_PATH").expect("missing environment variable SQLITE_PATH");
 
 	let db_pool = r2d2::Pool::builder()
@@ -139,6 +158,7 @@ async fn main() -> std::io::Result<()> {
 		App::new()
 			.app_data(web::Data::new(db_pool.clone()))
 			.app_data(web::Data::new(handlebars.clone()))
+			.wrap(Logger::new("%a \"%r\" %s \"%{Referer}i\" \"%{User-Agent}i\" %D ms"))
 			.wrap(middleware::UpdateTeams)
 			.wrap(NormalizePath::trim())
 			.wrap(Compress::default())
