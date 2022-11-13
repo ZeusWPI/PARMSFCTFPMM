@@ -2,6 +2,7 @@
 // @name     Epic Leaderboard Scraper
 // @version  1
 // @match https://play.picoctf.org/classrooms/*
+// @grant    GM.xmlHttpRequest
 // ==/UserScript==
 
 setTimeout(() => { /* Content is loaded dynamically, Wait for it to be loaded */
@@ -23,11 +24,13 @@ setTimeout(() => { /* Content is loaded dynamically, Wait for it to be loaded */
 
 	GM.xmlHttpRequest({
 		method: "POST",
-		url: "http://localhost:8081/data",
+		url: "http://localhost:8080/data",
+		headers:    {
+        	"Content-Type": "application/json"
+    	},
 		data: JSON.stringify(entries),
-		onload: (e) => {
-		}
+		onload: (e) => {}
 	})
 }, 1000);
 
-//setTimeout(() => {window.location.reload()}, 10000);
+setTimeout(() => {window.location.reload()}, 60000);

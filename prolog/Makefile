@@ -1,6 +1,6 @@
 .PHONY: all fmt lint
 
-all: fmt
+all:
 	docker build --pull --rm -t manual_flags:latest .
 
 fmt:

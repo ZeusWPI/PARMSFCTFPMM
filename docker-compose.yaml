@@ -15,6 +15,16 @@ services:
             source: ./data/parmesan_data/
             target: /parmesan/data/
 
+    rust:
+        image: rust:latest
+        container_name: rust
+        restart: unless-stopped
+        logging:
+            options:
+                max-size: "4096m"
+        ports:
+            - "8080:8080"
+
     manual_flags:
         image: manual_flags:latest
         container_name: manual_flags
