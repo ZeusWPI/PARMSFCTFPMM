@@ -9,6 +9,7 @@ mod schema {
 		manual_flag (name) {
 			name -> Text,
 			description -> Text,
+			points -> Integer,
 			flag -> Text,
 		}
 	}
@@ -42,6 +43,7 @@ use crate::DbConn;
 pub(crate) struct ManualFlag {
 	name:        String,
 	description: String,
+	points:      i32,
 	flag:        String,
 }
 
@@ -65,11 +67,13 @@ pub(crate) struct SolvedBy {
 
 impl ManualFlag {
 	/// Check if a flag is correct for a [`ManualFlag`] with a given name
+	///
+	/// If the flag is correct the points are returned in a [`Some`]
 	pub(crate) async fn verify_flag(
 		supplied_name: String,
 		supplied_flag: String,
 		mut conn: DbConn,
-	) -> bool {
+	) -> Option<i32> {
 		let requested_flag: ManualFlag = web::block(move || {
 			use self::manual_flag::dsl::*;
 
@@ -79,7 +83,7 @@ impl ManualFlag {
 		.expect("blocking call failed")
 		.expect("db query failed");
 
-		requested_flag.flag == supplied_flag
+		if requested_flag.flag == supplied_flag { Some(requested_flag.points) } else { None }
 	}
 
 	/// Get a list of all flags

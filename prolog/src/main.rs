@@ -74,14 +74,14 @@ async fn verify_flag(
 	}
 
 	let db_conn = db_pool.get().expect("could not get database connection");
-	let valid = ManualFlag::verify_flag(flag_name.clone(), flag, db_conn).await;
+	let points_opt = ManualFlag::verify_flag(flag_name.clone(), flag, db_conn).await;
 
-	if !(valid) {
+	let Some(points) = points_opt else {
 		return HttpResponse::Ok().json(json!({ "correct": false }));
-	}
+	};
 
 	let db_conn = db_pool.get().expect("could not get database connection");
-	Team::incr_team_score(team_name.clone(), 200, db_conn).await;
+	Team::incr_team_score(team_name.clone(), points, db_conn).await;
 
 	let db_conn = db_pool.get().expect("could not get database connection");
 	SolvedBy::set_solved(flag_name, team_name, db_conn).await;
