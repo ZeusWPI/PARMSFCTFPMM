@@ -28,13 +28,20 @@ mod schema {
 		}
 	}
 
+	table! {
+		picoctf_flag (name) {
+			name -> Text,
+			link -> Text,
+		}
+	}
+
 	joinable!(solved_by -> manual_flag (flag_name));
 	joinable!(solved_by -> team (team_name));
 
-	allow_tables_to_appear_in_same_query!(manual_flag, team, solved_by,);
+	allow_tables_to_appear_in_same_query!(manual_flag, team, solved_by, picoctf_flag,);
 }
 
-use self::schema::{manual_flag, solved_by, team};
+use self::schema::{manual_flag, picoctf_flag, solved_by, team};
 use crate::DbConn;
 
 #[derive(Clone, Identifiable, Queryable, Serialize)]
@@ -65,6 +72,29 @@ pub(crate) struct SolvedBy {
 	team_name: String,
 }
 
+#[derive(Clone, Identifiable, Queryable, Serialize)]
+#[diesel(primary_key(name))]
+#[diesel(table_name = picoctf_flag)]
+pub(crate) struct PicoctfFlag {
+	name: String,
+	link: String,
+}
+
+impl PicoctfFlag {
+	pub(crate) async fn all(mut conn: DbConn) -> Vec<Self> {
+		let all = web::block(move || {
+			use self::picoctf_flag::dsl::*;
+
+			picoctf_flag.load(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
+
+		all
+	}
+}
+
 impl ManualFlag {
 	/// Check if a flag is correct for a [`ManualFlag`] with a given name
 	///
@@ -87,7 +117,7 @@ impl ManualFlag {
 	}
 
 	/// Get a list of all flags
-	pub(crate) async fn get_all(mut conn: DbConn) -> Vec<Self> {
+	pub(crate) async fn all(mut conn: DbConn) -> Vec<Self> {
 		let challenges = web::block(move || {
 			use self::manual_flag::dsl::*;
 

@@ -22,7 +22,7 @@
 				>
 			</div>
 			<ul>
-				{{#each challenges}}
+				{{#each manual_challenges}}
 					{{#with this as | challenge |}}
 						<li>
 							<div class="challenge-header">
@@ -41,6 +41,15 @@
 							<p>
 								{{challenge.description}}
 							</p>
+						</li>
+					{{/with}}
+				{{/each}}
+				{{#each picoctf_challenges}}
+					{{#with this as | challenge |}}
+						<li class="pico-challenge">
+							<a href="{{challenge.link}}">
+								PicoCTF: {{challenge.name}}
+							</a>
 						</li>
 					{{/with}}
 				{{/each}}

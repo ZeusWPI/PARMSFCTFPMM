@@ -20,7 +20,7 @@ use r2d2::{Pool, PooledConnection};
 mod middleware;
 mod models;
 
-use models::{ManualFlag, SolvedBy, Team};
+use models::{ManualFlag, PicoctfFlag, SolvedBy, Team};
 use serde::Deserialize;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -35,10 +35,19 @@ fn run_migrations<DB: Backend>(conn: &mut impl MigrationHarness<DB>) {
 #[get("/")]
 async fn show_index(hb: web::Data<Handlebars<'_>>, db_pool: web::Data<DbPool>) -> HttpResponse {
 	let db_conn = db_pool.get().expect("could not get database connection");
-	let challenges = ManualFlag::get_all(db_conn).await;
+	let manual_challenges = ManualFlag::all(db_conn).await;
+	let db_conn = db_pool.get().expect("could not get database connection");
+	let picoctf_challenges = PicoctfFlag::all(db_conn).await;
 
-	let body =
-		hb.render("index", &json!({ "challenges": challenges })).expect("could not render index");
+	let body = hb
+		.render(
+			"index",
+			&json!({
+				"manual_challenges": manual_challenges,
+				"picoctf_challenges": picoctf_challenges,
+			}),
+		)
+		.expect("could not render index");
 
 	HttpResponse::Ok().body(body)
 }
