@@ -1,2 +1,4 @@
 prolog/target/
 rust/geckodriver.log
+data/manual_flags_data/*
+data/parmesan_data/*

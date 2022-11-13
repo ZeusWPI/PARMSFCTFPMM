@@ -11,7 +11,9 @@ services:
         ports:
           - "5000:5000"
         volumes:
-          - parmesan_data:/parmesan/data/
+          - type: bind
+            source: ./data/parmesan_data/
+            target: /parmesan/data/
 
     manual_flags:
         image: manual_flags:latest
@@ -26,10 +28,6 @@ services:
         ports:
           - "4000:80"
         volumes:
-          - manual_flags_db:/tmp/manual_flags/
-
-volumes:
-    parmesan_data:
-        external: true
-    manual_flags_db:
-        external: true
+          - type: bind
+            source: ./data/manual_flags_data/
+            target: /tmp/manual_flags/
