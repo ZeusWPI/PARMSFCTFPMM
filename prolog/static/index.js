@@ -26,9 +26,15 @@ async function submit_flag(flag_input) {
 			mode: "cors"
 		}
 	);
+
 	if (res.status == 403) {
 		alert("You have already solved this flag");
 		flag_input.value = "";
+
+		return;
+	} else if (res.status == 400) {
+		alert("Incorrect team name");
+		team_name_input.value = "";
 
 		return;
 	}

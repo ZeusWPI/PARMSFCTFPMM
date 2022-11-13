@@ -67,6 +67,11 @@ async fn verify_flag(
 	let team_name = query.into_inner().team_name;
 
 	let db_conn = db_pool.get().expect("could not get database connection");
+	if !(Team::exists(team_name.clone(), db_conn).await) {
+		return HttpResponse::BadRequest().finish();
+	}
+
+	let db_conn = db_pool.get().expect("could not get database connection");
 	let solved = SolvedBy::has_been_solved(flag_name.clone(), team_name.clone(), db_conn).await;
 
 	if solved {

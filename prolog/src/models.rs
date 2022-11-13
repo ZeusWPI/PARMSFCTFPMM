@@ -124,6 +124,22 @@ impl Team {
 		.expect("db query failed");
 	}
 
+	/// Check if a team exists
+	pub(crate) async fn exists(team_name_: String, mut conn: DbConn) -> bool {
+		let exists = web::block(move || {
+			use diesel::dsl::{exists, select};
+
+			use self::team::dsl::*;
+
+			select(exists(team.filter(name.eq(team_name_)))).get_result(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
+
+		exists
+	}
+
 	/// Increment the score for a team by a given amount
 	pub(crate) async fn incr_team_score(team_name: String, incr: i32, mut conn: DbConn) {
 		web::block(move || {
