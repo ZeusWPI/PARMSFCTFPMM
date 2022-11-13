@@ -13,7 +13,7 @@
 	<body>
 		<div class="wrapper">
 			<div class="team-name-header">
-				<h2>Team Name:</h2>
+				<h1>Team Name:</h1>
 				<input
 					type="text"
 					name="team-name"
@@ -26,7 +26,10 @@
 					{{#with this as | challenge |}}
 						<li>
 							<div class="challenge-header">
-								<h3>{{challenge.name}}</h3>
+								<div class="challenge-info">
+									<h2>{{challenge.name}}</h2>
+									<b>({{challenge.points}} pts.)</b>
+								</div>
 								<input
 									type="text"
 									name="flag"

@@ -60,6 +60,23 @@ li:nth-child(odd) {
 	width: 100%;
 }
 
+.challenge-info {
+	flex: 1 1 auto;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: baseline;
+	text-align: center;
+}
+
+.challenge-info > h2 {
+	margin-right: 0.25rem;
+}
+
+.challenge-info > b {
+	margin-right: 0.25rem;
+}
+
 .flag-input {
 	background: transparent;
 	color: #f9f5d7;

@@ -5,7 +5,7 @@ const flag_inputs = document.getElementsByClassName("flag-input");
 const submit_btn = document.getElementById("submit-btn");
 
 async function submit_flag(flag_input) {
-	const flag_name = flag_input.previousElementSibling.textContent;
+	const flag_name = flag_input.previousElementSibling.children[0].innerText;
 
 	const flag_value = flag_input.value;
 	if (!(flag_value)) {
