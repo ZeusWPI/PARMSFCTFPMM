@@ -124,20 +124,25 @@ impl Team {
 		.expect("db query failed");
 	}
 
-	/// Check if a team exists
-	pub(crate) async fn exists(team_name_: String, mut conn: DbConn) -> bool {
-		let exists = web::block(move || {
-			use diesel::dsl::{exists, select};
-
+	/// Attempt to get a team by name
+	pub(crate) async fn get(team_name_: String, mut conn: DbConn) -> Option<Self> {
+		let res: Result<Self, diesel::result::Error> = web::block(move || {
 			use self::team::dsl::*;
 
-			select(exists(team.filter(name.eq(team_name_)))).get_result(&mut conn)
+			team.find(team_name_).first::<Self>(&mut conn)
 		})
 		.await
-		.expect("blocking call failed")
-		.expect("db query failed");
+		.expect("blocking call failed");
 
-		exists
+		let team = match res {
+			Ok(t) => t,
+			Err(diesel::result::Error::NotFound) => {
+				return None;
+			},
+			Err(e) => panic!("db query failed {}", e),
+		};
+
+		Some(team)
 	}
 
 	/// Increment the score for a team by a given amount
@@ -178,6 +183,23 @@ impl Team {
 		}
 
 		serde_json::Value::Object(flat_map)
+	}
+
+	/// Get the names of all flags that have been solved by this team
+	pub(crate) async fn get_solved(self, mut conn: DbConn) -> Vec<String> {
+		let solved = web::block(move || {
+			use self::manual_flag::dsl::*;
+			use self::solved_by::dsl::*;
+
+			let solved_map = SolvedBy::belonging_to(&self).select(flag_name);
+
+			manual_flag.filter(name.eq_any(solved_map)).load::<ManualFlag>(&mut conn)
+		})
+		.await
+		.expect("blocking call failed")
+		.expect("db query failed");
+
+		solved.into_iter().map(|f| f.name).collect()
 	}
 }
 

@@ -43,6 +43,21 @@ async fn show_index(hb: web::Data<Handlebars<'_>>, db_pool: web::Data<DbPool>) -
 	HttpResponse::Ok().body(body)
 }
 
+#[get("/{team}/solved")]
+async fn get_solved(info: web::Path<String>, db_pool: web::Data<DbPool>) -> HttpResponse {
+	let team_name = info.into_inner();
+
+	let db_conn = db_pool.get().expect("could not get database connection");
+	let Some(team) = Team::get(team_name, db_conn).await else {
+		return HttpResponse::BadRequest().finish()
+	};
+
+	let db_conn = db_pool.get().expect("could not get database connection");
+	let solved = team.get_solved(db_conn).await;
+
+	HttpResponse::Ok().json(solved)
+}
+
 #[get("/scores")]
 async fn get_scores(db_pool: web::Data<DbPool>) -> HttpResponse {
 	let db_conn = db_pool.get().expect("could not get database connection");
@@ -67,7 +82,7 @@ async fn verify_flag(
 	let team_name = query.into_inner().team_name;
 
 	let db_conn = db_pool.get().expect("could not get database connection");
-	if !(Team::exists(team_name.clone(), db_conn).await) {
+	if Team::get(team_name.clone(), db_conn).await.is_none() {
 		return HttpResponse::BadRequest().finish();
 	}
 
@@ -120,6 +135,7 @@ async fn main() -> std::io::Result<()> {
 			.wrap(Compress::default())
 			.service(Files::new("/static", "./static"))
 			.service(show_index)
+			.service(get_solved)
 			.service(get_scores)
 			.service(verify_flag)
 	})
