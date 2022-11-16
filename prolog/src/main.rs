@@ -124,9 +124,8 @@ async fn main() -> std::io::Result<()> {
 	fern::Dispatch::new()
 		.format(|out, msg, record| {
 			out.finish(format_args!(
-				"[{}][{}][{}] {}",
-				Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true),
-				record.target(),
+				"[{}][{}] {}",
+				Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
 				record.level(),
 				msg
 			))
@@ -158,7 +157,7 @@ async fn main() -> std::io::Result<()> {
 		App::new()
 			.app_data(web::Data::new(db_pool.clone()))
 			.app_data(web::Data::new(handlebars.clone()))
-			.wrap(Logger::new("%a \"%r\" %s \"%{Referer}i\" \"%{User-Agent}i\" %D ms"))
+			.wrap(Logger::new("\"%r\" %s \"%{User-Agent}i\" %D ms"))
 			.wrap(middleware::UpdateTeams)
 			.wrap(NormalizePath::trim())
 			.wrap(Compress::default())
