@@ -1,4 +1,4 @@
-const FLAG_URL = "http://localhost:4000"
+const FLAG_URL = "http://10.2.1.165:4000"
 
 const team_name_input = document.getElementById("team-name-input");
 const flag_inputs = document.getElementsByClassName("flag-input");
