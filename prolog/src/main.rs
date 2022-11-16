@@ -8,7 +8,7 @@ extern crate serde_json;
 use std::env;
 
 use actix_files::Files;
-use actix_web::middleware::{Compress, NormalizePath, Logger};
+use actix_web::middleware::{Compress, Logger, NormalizePath};
 use actix_web::{get, post, web, App, HttpResponse, HttpServer};
 use chrono::{SecondsFormat, Utc};
 use diesel::backend::Backend;
